@@ -3,7 +3,7 @@ import Hero from "@/components/home/Hero";
 import GradesSection from "@/components/home/GradesSection";
 import PathwaysSection from "@/components/home/PathwaysSection";
 import SubjectsSection from "@/components/home/SubjectsSection";
-import FeaturedResources from "@/components/home/FeaturedResources";
+import FeaturedResources from "@/components/home/Features";
 
 
 export default function Home() {
