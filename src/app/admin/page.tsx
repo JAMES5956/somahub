@@ -1,81 +1,148 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   BookOpen,
-  FilePlus2,
   Users,
-  ShoppingCart,
+  CreditCard,
+  Download,
+  Plus,
 } from "lucide-react";
 
 export default function AdminDashboard() {
   return (
-    <main className="min-h-screen bg-gray-100">
-
-      <header className="bg-blue-700 text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-
+    <main className="min-h-screen bg-slate-100">
+      <div className="mx-auto max-w-7xl p-8">
+        {/* Header */}
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-4xl font-bold text-slate-900">
               SomaHub Admin
             </h1>
 
-            <p className="text-blue-100">
-              Manage your learning platform
+            <p className="mt-2 text-slate-600">
+              Welcome back! Manage your CBE learning platform.
             </p>
-          </div>
-
-          <Link
-            href="/"
-            className="rounded-xl bg-white px-5 py-3 font-semibold text-blue-700"
-          >
-            Home
-          </Link>
-
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-7xl px-6 py-10">
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-          <div className="rounded-3xl bg-white p-8 shadow">
-            <BookOpen className="mb-4 h-10 w-10 text-blue-600" />
-            <h2 className="text-2xl font-bold">Resources</h2>
-            <p className="mt-2 text-gray-600">Manage all study materials.</p>
-          </div>
-
-          <div className="rounded-3xl bg-white p-8 shadow">
-            <Users className="mb-4 h-10 w-10 text-green-600" />
-            <h2 className="text-2xl font-bold">Users</h2>
-            <p className="mt-2 text-gray-600">View registered users.</p>
-          </div>
-
-          <div className="rounded-3xl bg-white p-8 shadow">
-            <ShoppingCart className="mb-4 h-10 w-10 text-amber-500" />
-            <h2 className="text-2xl font-bold">Orders</h2>
-            <p className="mt-2 text-gray-600">Track purchases.</p>
           </div>
 
           <Link
             href="/admin/resources/new"
-            className="rounded-3xl bg-blue-600 p-8 text-white shadow transition hover:bg-blue-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
           >
-            <FilePlus2 className="mb-4 h-10 w-10" />
-
-            <h2 className="text-2xl font-bold">
-              Upload Resource
-            </h2>
-
-            <p className="mt-2 text-blue-100">
-              Add a new learning resource.
-            </p>
+            <Plus className="h-5 w-5" />
+            Upload Resource
           </Link>
-
         </div>
 
-      </div>
+        {/* Statistics */}
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Resources"
+            value="0"
+            icon={<BookOpen className="h-7 w-7" />}
+          />
 
+          <StatCard
+            title="Users"
+            value="0"
+            icon={<Users className="h-7 w-7" />}
+          />
+
+          <StatCard
+            title="Revenue"
+            value="KSh 0"
+            icon={<CreditCard className="h-7 w-7" />}
+          />
+
+          <StatCard
+            title="Downloads"
+            value="0"
+            icon={<Download className="h-7 w-7" />}
+          />
+        </div>
+
+        {/* Content */}
+        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <section className="rounded-3xl bg-white p-8 shadow">
+            <h2 className="mb-6 text-2xl font-bold">
+              Quick Actions
+            </h2>
+
+            <div className="grid gap-4">
+              <Link
+                href="/admin/resources"
+                className="rounded-xl border p-4 transition hover:bg-slate-50"
+              >
+                📚 Manage Resources
+              </Link>
+
+              <Link
+                href="/admin/resources/new"
+                className="rounded-xl border p-4 transition hover:bg-slate-50"
+              >
+                ⬆️ Upload Resource
+              </Link>
+
+              <Link
+                href="/admin/payments"
+                className="rounded-xl border p-4 transition hover:bg-slate-50"
+              >
+                💰 View Payments
+              </Link>
+
+              <Link
+                href="/admin/users"
+                className="rounded-xl border p-4 transition hover:bg-slate-50"
+              >
+                👥 Manage Users
+              </Link>
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-8 shadow">
+            <h2 className="mb-6 text-2xl font-bold">
+              Recent Activity
+            </h2>
+
+            <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 text-slate-500">
+              No recent activity yet.
+            </div>
+          </section>
+        </div>
+      </div>
     </main>
+  );
+}
+
+type StatCardProps = {
+  title: string;
+  value: string;
+  icon: ReactNode;
+};
+
+function StatCard({
+  title,
+  value,
+  icon,
+}: StatCardProps) {
+  return (
+    <div className="rounded-3xl bg-white p-6 shadow transition hover:shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-slate-500">
+            {title}
+          </p>
+
+          <h3 className="mt-2 text-3xl font-bold">
+            {value}
+          </h3>
+        </div>
+
+        <div className="rounded-full bg-blue-100 p-4 text-blue-600">
+          {icon}
+        </div>
+      </div>
+    </div>
   );
 }

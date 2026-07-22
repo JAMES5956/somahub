@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  ReactNode,
 } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
@@ -12,41 +13,57 @@ import { supabase } from "@/lib/supabase";
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  refreshUser: async () => {},
 });
 
 export function AuthProvider({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function getSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+  async function refreshUser() {
+    setLoading(true);
 
-      setUser(session?.user ?? null);
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Failed to get session:", error);
+      setUser(null);
       setLoading(false);
+      return;
     }
 
-    getSession();
+    setUser(session?.user ?? null);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    refreshUser();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -54,6 +71,7 @@ export function AuthProvider({
       value={{
         user,
         loading,
+        refreshUser,
       }}
     >
       {children}

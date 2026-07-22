@@ -9,9 +9,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
 
         {/* Logo */}
-
         <Link href="/" className="flex items-center gap-3">
-
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-lg">
             <BookOpen className="h-6 w-6 text-white" />
           </div>
@@ -22,16 +20,13 @@ export default function Navbar() {
             </h1>
 
             <p className="text-xs text-gray-500">
-              CBC Learning Platform
+              CBE Learning Platform
             </p>
           </div>
-
         </Link>
 
-        {/* Desktop Menu */}
-
+        {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 lg:flex">
-
           <a
             href="#about"
             className="font-medium text-gray-700 transition hover:text-blue-600"
@@ -66,13 +61,10 @@ export default function Navbar() {
           >
             Contact
           </a>
-
         </nav>
 
         {/* Right Buttons */}
-
         <div className="hidden items-center gap-4 lg:flex">
-
           <Link
             href="/login"
             className="rounded-xl border border-blue-600 px-5 py-2.5 font-semibold text-blue-600 transition hover:bg-blue-50"
@@ -86,15 +78,12 @@ export default function Navbar() {
           >
             Create Account
           </Link>
-
         </div>
 
-        {/* Mobile */}
-
+        {/* Mobile Menu */}
         <button className="rounded-lg p-2 lg:hidden">
           <Menu className="h-7 w-7 text-gray-700" />
         </button>
-
       </div>
     </header>
   );

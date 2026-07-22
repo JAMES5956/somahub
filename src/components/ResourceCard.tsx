@@ -57,52 +57,70 @@ export default function ResourceCard({
     }
   }
 
+
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-md transition hover:shadow-xl">
+    <div className="overflow-hidden rounded-2xl bg-white shadow-md hover:shadow-xl transition">
 
       <div className="relative h-56 w-full">
+
         <Image
-          src={resource.thumbnail_url ?? "/placeholder.png"}
-          alt={resource.title}
+          src={resource?.thumbnail_url ?? "/placeholder.png"}
+          alt={resource?.title ?? "Learning Resource"}
           fill
           className="object-cover"
         />
+
       </div>
 
 
       <div className="p-5">
 
-        <h2 className="text-xl font-bold">
+        <h2 className="text-xl font-bold text-gray-900">
           {resource.title}
         </h2>
+
 
         <p className="mt-2 text-gray-600">
           {resource.subject}
         </p>
 
+
         <p className="text-gray-600">
           {resource.grade}
         </p>
 
-        <p className="mt-4 text-2xl font-bold text-blue-600">
-          KSh {resource.price}
-        </p>
+
+        {resource.description && (
+          <p className="mt-3 text-sm text-gray-500">
+            {resource.description}
+          </p>
+        )}
 
 
-        <button
-          onClick={addToCart}
-          disabled={adding}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          <ShoppingCart className="h-5 w-5" />
+        <div className="mt-5 flex items-center justify-between">
 
-          {adding ? "Adding..." : "Add to Cart"}
+          <p className="text-2xl font-bold text-blue-600">
+            KSh {resource.price}
+          </p>
 
-        </button>
+
+          <button
+            onClick={addToCart}
+            disabled={adding}
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-700 disabled:opacity-50"
+          >
+
+            <ShoppingCart className="h-5 w-5" />
+
+            {adding ? "Adding..." : "Add to Cart"}
+
+          </button>
+
+        </div>
 
 
         {message && (
-          <p className="mt-3 text-center text-sm text-green-600">
+          <p className="mt-4 text-center text-sm font-medium text-green-600">
             {message}
           </p>
         )}

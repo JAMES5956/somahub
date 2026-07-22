@@ -1,79 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAccessToken } from "@/lib/daraja";
+import { createClient } from "@supabase/supabase-js";
+import {
+  getAccessToken,
+  getPassword,
+  DarajaConfig,
+} from "@/lib/daraja";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, amount } = await request.json();
+    const { phone, amount, resourceId, userId } = await request.json();
+
+    if (!phone || !amount || !resourceId || !userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Missing required fields.",
+        },
+        { status: 400 }
+      );
+    }
 
     const accessToken = await getAccessToken();
 
-    const shortcode = process.env.DARAJA_SHORTCODE!;
-    const passkey = process.env.DARAJA_PASSKEY!;
+    const { password, timestamp } = getPassword();
 
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/[-:TZ.]/g, "")
-      .slice(0, 14);
+    const callbackUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/mpesa/callback`;
 
-    const password = Buffer.from(
-      `${shortcode}${passkey}${timestamp}`
-    ).toString("base64");
-
-    console.log("========== STK REQUEST ==========");
-    console.log({
-      shortcode,
-      timestamp,
-      phone,
-      amount,
-      password,
-    });
+    const stkBody = {
+      BusinessShortCode: DarajaConfig.shortcode,
+      Password: password,
+      Timestamp: timestamp,
+      TransactionType: "CustomerPayBillOnline",
+      Amount: Number(amount),
+      PartyA: phone,
+      PartyB: DarajaConfig.shortcode,
+      PhoneNumber: phone,
+      CallBackURL: callbackUrl,
+      AccountReference: "SomaHub",
+      TransactionDesc: `Purchase Resource ${resourceId}`,
+    };
 
     const response = await fetch(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+      `${DarajaConfig.baseUrl}/mpesa/stkpush/v1/processrequest`,
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          BusinessShortCode: shortcode,
-          Password: password,
-          Timestamp: timestamp,
-          TransactionType: "CustomerPayBillOnline",
-          Amount: Number(amount),
-          PartyA: phone,
-          PartyB: shortcode,
-          PhoneNumber: phone,
-          CallBackURL: `${process.env.NEXT_PUBLIC_APP_URL}/api/mpesa/callback`,
-          AccountReference: "SomaHub",
-          TransactionDesc: "CBC Resource Purchase",
-        }),
+        body: JSON.stringify(stkBody),
       }
     );
 
     const data = await response.json();
 
-    console.log("========== STK RESPONSE ==========");
-    console.log(JSON.stringify(data, null, 2));
-    console.log("==================================");
+    if (data.ResponseCode !== "0") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: data.errorMessage || data.ResponseDescription,
+          data,
+        },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(data, {
-      status: response.status,
+    const { error } = await supabase.from("payments").insert({
+      user_id: userId,
+      resource_id: resourceId,
+      phone,
+      amount,
+      merchant_request_id: data.MerchantRequestID,
+      checkout_request_id: data.CheckoutRequestID,
+      status: "PENDING",
     });
-  } catch (error: any) {
-    console.error("========== STK ERROR ==========");
+
+    if (error) {
+      console.error(error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Failed to save payment.",
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      checkoutRequestId: data.CheckoutRequestID,
+      merchantRequestId: data.MerchantRequestID,
+      customerMessage: data.CustomerMessage,
+    });
+  } catch (error) {
     console.error(error);
-    console.error("===============================");
 
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message: "Internal server error.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

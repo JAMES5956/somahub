@@ -10,74 +10,84 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    console.log(
-      "========== DARAJA CALLBACK =========="
-    );
+    console.log("========== DARAJA CALLBACK ==========");
     console.log(JSON.stringify(body, null, 2));
 
-    const callback =
-      body.Body?.stkCallback;
+    const callback = body.Body?.stkCallback;
 
     if (!callback) {
       return NextResponse.json({
-        success: false,
+        ResultCode: 0,
+        ResultDesc: "Accepted",
       });
     }
 
-    const checkoutRequestID =
-      callback.CheckoutRequestID;
-
-    const merchantRequestID =
-      callback.MerchantRequestID;
-
-    const resultCode =
-      callback.ResultCode;
-
-    const resultDesc =
-      callback.ResultDesc;
+    const checkoutRequestID = callback.CheckoutRequestID;
+    const merchantRequestID = callback.MerchantRequestID;
+    const resultCode = callback.ResultCode;
+    const resultDesc = callback.ResultDesc;
 
     let amount = null;
     let receipt = null;
     let phone = null;
+    let transactionDate = null;
 
-    if (
-      callback.CallbackMetadata?.Item
-    ) {
+    if (callback.CallbackMetadata?.Item) {
       for (const item of callback.CallbackMetadata.Item) {
-        if (item.Name === "Amount")
-          amount = item.Value;
+        switch (item.Name) {
+          case "Amount":
+            amount = item.Value;
+            break;
 
-        if (
-          item.Name ===
-          "MpesaReceiptNumber"
-        )
-          receipt = item.Value;
+          case "MpesaReceiptNumber":
+            receipt = item.Value;
+            break;
 
-        if (
-          item.Name ===
-          "PhoneNumber"
-        )
-          phone = item.Value;
+          case "PhoneNumber":
+            phone = item.Value;
+            break;
+
+          case "TransactionDate":
+            transactionDate = item.Value;
+            break;
+        }
       }
     }
 
-    await supabase
+    // Update existing payment
+    const { data: payment, error: paymentError } = await supabase
       .from("payments")
-      .insert({
+      .update({
         amount,
         phone,
         mpesa_receipt: receipt,
-        merchant_request_id:
-          merchantRequestID,
-        checkout_request_id:
-          checkoutRequestID,
         result_code: resultCode,
         result_desc: resultDesc,
-        status:
-          resultCode === 0
-            ? "Paid"
-            : "Failed",
-      });
+        transaction_date: transactionDate,
+        status: resultCode === 0 ? "PAID" : "FAILED",
+      })
+      .eq("checkout_request_id", checkoutRequestID)
+      .select()
+      .single();
+
+    if (paymentError) {
+      console.error(paymentError);
+    }
+
+    // Unlock purchased resource
+    if (resultCode === 0 && payment) {
+      const { error: unlockError } = await supabase
+        .from("purchases")
+        .insert({
+          user_id: payment.user_id,
+          resource_id: payment.resource_id,
+          payment_id: payment.id,
+        });
+
+      if (unlockError) {
+        console.error(unlockError);
+      }
+    }
 
     return NextResponse.json({
       ResultCode: 0,
@@ -89,7 +99,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ResultCode: 1,
-        ResultDesc: "Failed",
+        ResultDesc: "Server Error",
       },
       {
         status: 500,

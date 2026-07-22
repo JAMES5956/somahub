@@ -14,29 +14,68 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // Sign in
+      const {
+        data: authData,
+        error: authError,
+      } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setLoading(false);
+      if (authError) throw authError;
 
-    if (error) {
-      setError(error.message);
-      return;
+      const user = authData.user;
+
+      if (!user) {
+        throw new Error("User not found.");
+      }
+
+      // Get profile
+      const {
+        data: profile,
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (!profile) {
+        throw new Error(
+          "Your profile could not be found."
+        );
+      }
+
+      // Redirect by role
+      if (profile.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Login failed.");
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/dashboard");
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-6">
+    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-6">
       <form
         onSubmit={handleLogin}
         className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl"
@@ -46,26 +85,30 @@ export default function LoginPage() {
         </h1>
 
         {error && (
-          <div className="mb-4 rounded-xl bg-red-100 p-3 text-red-700">
+          <div className="mb-6 rounded-xl bg-red-100 p-4 text-red-700">
             {error}
           </div>
         )}
 
         <input
           type="email"
-          placeholder="Email"
-          className="mb-4 w-full rounded-xl border p-4"
+          placeholder="Email Address"
+          className="mb-4 w-full rounded-xl border border-gray-300 p-4"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
           required
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="mb-6 w-full rounded-xl border p-4"
+          className="mb-6 w-full rounded-xl border border-gray-300 p-4"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
           required
         />
 
@@ -77,11 +120,11 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <p className="mt-6 text-center">
-          Don't have an account?
+        <p className="mt-6 text-center text-gray-600">
+          Don't have an account?{" "}
           <Link
             href="/register"
-            className="ml-2 font-bold text-blue-600"
+            className="font-semibold text-blue-600"
           >
             Create one
           </Link>
