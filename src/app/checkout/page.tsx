@@ -46,7 +46,14 @@ export default function CheckoutPage() {
       .eq("user_id", user.id);
 
     if (!error && data) {
-      setItems(data as CartItem[]);
+      setItems(
+  (data || []).map((item: any) => ({
+    id: item.id,
+    resources: Array.isArray(item.resources)
+      ? item.resources[0] || { title: "Unknown", price: 0 }
+      : item.resources || { title: "Unknown", price: 0 },
+  }))
+);
     }
 
     setLoading(false);

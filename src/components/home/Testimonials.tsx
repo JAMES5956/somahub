@@ -10,7 +10,7 @@ export default function Testimonials() {
       name: "Parent",
       role: "Kisumu",
       message:
-        "Finding quality CBC learning materials used to be difficult. SomaHub has everything organized in one place.",
+        "Finding quality CBE learning materials used to be difficult. SomaHub has everything organized in one place.",
     },
     {
       name: "Teacher",

@@ -62,10 +62,10 @@ export default function LoginPage() {
 
       // Redirect by role
       if (profile.role === "admin") {
-        router.replace("/admin");
-      } else {
-        router.replace("/dashboard");
-      }
+  router.replace("/admin/dashboard");
+} else {
+  router.replace("/dashboard");
+}
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Login failed.");

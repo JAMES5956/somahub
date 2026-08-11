@@ -2,7 +2,7 @@ export default function Features() {
   const features = [
     {
       emoji: '📚',
-      title: 'Quality CBC Resources',
+      title: 'Quality CBE Resources',
       description:
         'Access curriculum-aligned notes, revision papers, CATs and examinations for every grade.',
     },
@@ -10,7 +10,7 @@ export default function Features() {
       emoji: '🗂️',
       title: 'Well Organized',
       description:
-        'Browse by grade, subject, category and CBC pathway with ease.',
+        'Browse by grade, subject, category and CBE pathway with ease.',
     },
     {
       emoji: '🔍',
@@ -32,9 +32,9 @@ export default function Features() {
     },
     {
       emoji: '🇰🇪',
-      title: 'Built for CBC',
+      title: 'Built for CBE',
       description:
-        'Designed specifically for the Kenyan CBC curriculum for students, teachers and parents.',
+        'Designed specifically for the Kenyan CBE curriculum for students, teachers and parents.',
     },
   ];
 

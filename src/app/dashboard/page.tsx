@@ -6,8 +6,18 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ResourceCard from "@/components/resources/ResourceCard";
 import { supabase } from "@/lib/supabase";
 
-export default function Dashboard() {
-  const [resources, setResources] = useState<any[]>([]);
+type Resource = {
+  id: string;
+  title: string;
+  description?: string;
+  grade: string;
+  subject: string;
+  price: number;
+  thumbnail_url?: string | null;
+};
+
+export default function DashboardPage() {
+  const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,10 +31,10 @@ export default function Dashboard() {
       .eq("published", true)
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setResources(data || []);
+    if (error) {
+      console.error("Error loading resources:", error);
     } else {
-      console.error(error);
+      setResources((data as Resource[]) || []);
     }
 
     setLoading(false);
@@ -32,45 +42,46 @@ export default function Dashboard() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-gray-100">
-
-        <div className="bg-blue-700 text-white">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-
-            <h1 className="text-3xl font-bold">
-              SomaHub Dashboard
-            </h1>
-
-            <Link
-              href="/resources"
-              className="rounded-lg bg-white px-5 py-2 font-semibold text-blue-700"
-            >
-              Browse Resources
-            </Link>
-
-          </div>
-        </div>
-
+      <main className="min-h-screen bg-slate-100">
         <div className="mx-auto max-w-7xl px-6 py-10">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900">
+                Welcome to SomaHub
+              </h1>
 
-          <h2 className="text-4xl font-bold">
-            Welcome 👋
-          </h2>
+              <p className="mt-2 text-slate-600">
+                Browse the latest CBE learning resources uploaded by teachers.
+              </p>
+            </div>
 
-          <p className="mt-2 text-gray-600">
-            Browse the latest CBC learning resources.
-          </p>
+            <div className="flex gap-3">
+              <Link
+                href="/resources"
+                className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+              >
+                Browse Resources
+              </Link>
+
+              <Link
+                href="/dashboard/purchases"
+                className="rounded-xl bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700"
+              >
+                My Purchases
+              </Link>
+            </div>
+          </div>
 
           {loading ? (
-            <div className="mt-10 text-center text-xl">
+            <div className="py-20 text-center text-xl">
               Loading resources...
             </div>
           ) : resources.length === 0 ? (
-            <div className="mt-10 rounded-2xl bg-white p-8 shadow text-center">
+            <div className="rounded-2xl bg-white p-10 text-center shadow">
               No resources have been published yet.
             </div>
           ) : (
-            <div className="mt-10 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               {resources.map((resource) => (
                 <ResourceCard
                   key={resource.id}
@@ -79,9 +90,7 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-
         </div>
-
       </main>
     </ProtectedRoute>
   );

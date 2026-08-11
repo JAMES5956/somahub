@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import ReviewSection from "@/components/resources/ReviewSection";
 
 export default function ResourceDetailsPage() {
   const { id } = useParams();
@@ -136,41 +137,30 @@ export default function ResourceDetailsPage() {
               {resource.description}
             </p>
 
-            {/* INFORMATION */}
-
             <div className="mt-10 rounded-2xl border border-slate-200 bg-slate-50 p-6">
 
               {resource.term && (
                 <div className="mb-5 flex justify-between border-b border-slate-300 pb-4">
-
-                  <span className="text-lg font-bold text-slate-900">
-                    Term
-                  </span>
-
-                  <span className="text-lg font-semibold text-slate-800">
+                  <span className="text-lg font-bold">Term</span>
+                  <span className="text-lg font-semibold">
                     {resource.term}
                   </span>
-
                 </div>
               )}
 
               {resource.pathway && (
                 <div className="flex justify-between">
-
-                  <span className="text-lg font-bold text-slate-900">
+                  <span className="text-lg font-bold">
                     Pathway
                   </span>
 
-                  <span className="text-lg font-semibold text-slate-800">
+                  <span className="text-lg font-semibold">
                     {resource.pathway}
                   </span>
-
                 </div>
               )}
 
             </div>
-
-            {/* PRICE */}
 
             <div className="mt-10">
 
@@ -183,8 +173,7 @@ export default function ResourceDetailsPage() {
               </h3>
 
             </div>
-
-            {/* BUY BUTTON */}
+                        {/* BUY BUTTON */}
 
             <Link
               href={`/checkout/${resource.id}`}
@@ -200,7 +189,12 @@ export default function ResourceDetailsPage() {
           </div>
 
         </div>
+      </div>
 
+      {/* REVIEWS */}
+
+      <div className="mx-auto max-w-7xl px-6 pb-16">
+        <ReviewSection resourceId={resource.id} />
       </div>
 
     </main>

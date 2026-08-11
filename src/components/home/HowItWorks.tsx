@@ -48,7 +48,7 @@ export default function HowItWorks() {
           </h2>
 
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Buying quality CBC learning resources has never been easier.
+            Buying quality CBE learning resources has never been easier.
           </p>
 
         </div>

@@ -9,7 +9,7 @@ export default function Hero() {
         <div className="flex-1">
 
           <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-            🇰🇪 Kenya's Trusted CBC Learning Platform
+            🇰🇪 Kenya's Trusted CBE Learning Platform
           </span>
 
           <h1 className="mt-8 text-5xl font-extrabold leading-tight text-gray-900 md:text-6xl">
@@ -19,7 +19,7 @@ export default function Hero() {
           </h1>
 
           <p className="mt-8 max-w-2xl text-lg leading-8 text-gray-700">
-            Access quality CBC notes, exams, CATs, holiday assignments,
+            Access quality CBE notes, exams, CATs, holiday assignments,
             revision papers and marking schemes for Grades 1–12.
           </p>
 
@@ -56,7 +56,7 @@ export default function Hero() {
               </h3>
 
               <p className="mt-2 text-sm text-gray-600">
-                Complete CBC Coverage
+                Complete CBE Coverage
               </p>
             </div>
 
@@ -64,7 +64,7 @@ export default function Hero() {
               <div className="text-3xl">📚</div>
 
               <h3 className="mt-3 font-bold text-gray-900">
-                CBC Resources
+                CBE Resources
               </h3>
 
               <p className="mt-2 text-sm text-gray-600">
@@ -141,7 +141,7 @@ export default function Hero() {
               </h3>
 
               <p className="mt-3 text-blue-100">
-                Register for free and unlock thousands of CBC learning resources.
+                Register for free and unlock thousands of CBE learning resources.
               </p>
 
               <Link

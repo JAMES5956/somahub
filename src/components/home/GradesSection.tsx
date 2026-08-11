@@ -29,7 +29,7 @@ export default function GradesSection() {
           </h2>
 
           <p className="mt-3 text-slate-600">
-            Find CBC learning materials by grade level.
+            Find CBE learning materials by grade level.
           </p>
         </div>
 

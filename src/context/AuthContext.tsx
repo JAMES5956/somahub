@@ -5,9 +5,9 @@ import {
   useContext,
   useEffect,
   useState,
-  ReactNode,
 } from "react";
-import { User } from "@supabase/supabase-js";
+import type { ReactNode } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 type AuthContextType = {
@@ -16,11 +16,9 @@ type AuthContextType = {
   refreshUser: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  refreshUser: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export function AuthProvider({
   children,
@@ -31,8 +29,6 @@ export function AuthProvider({
   const [loading, setLoading] = useState(true);
 
   async function refreshUser() {
-    setLoading(true);
-
     const {
       data: { session },
       error,
@@ -79,6 +75,14 @@ export function AuthProvider({
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error(
+      "useAuth must be used inside an AuthProvider"
+    );
+  }
+
+  return context;
 }

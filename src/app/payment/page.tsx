@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function PaymentPage() {
+function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -12,9 +12,9 @@ export default function PaymentPage() {
   const amount = searchParams.get("amount");
 
   const [phone, setPhone] = useState("");
+  const [transactionId, setTransactionId] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [checkoutRequestId, setCheckoutRequestId] = useState("");
 
   useEffect(() => {
     async function checkUser() {
@@ -30,18 +30,14 @@ export default function PaymentPage() {
     checkUser();
   }, [router]);
 
-  async function pay() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      router.push("/login");
+  async function submitPayment() {
+    if (!phone.trim()) {
+      setMessage("Please enter your M-Pesa phone number.");
       return;
     }
 
-    if (!phone) {
-      setMessage("Enter your M-Pesa phone number.");
+    if (!transactionId.trim()) {
+      setMessage("Please enter your M-Pesa transaction ID.");
       return;
     }
 
@@ -49,107 +45,139 @@ export default function PaymentPage() {
     setMessage("");
 
     try {
-      const response = await fetch("/api/mpesa/stkpush", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone,
-          amount: Number(amount),
-          resourceId,
-          userId: user.id,
-        }),
-      });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setMessage(data.message || "Payment failed.");
+      if (!user) {
+        router.push("/login");
         return;
       }
 
-      setCheckoutRequestId(data.checkoutRequestId);
+      const { error } = await supabase.from("purchases").insert({
+        user_id: user.id,
+        resource_id: resourceId,
+        payment_id: transactionId.trim(),
+        status: "pending",
+      });
+
+      if (error) {
+        console.error(error);
+        setMessage(error.message);
+        return;
+      }
 
       setMessage(
-        "STK Push sent successfully. Please check your phone and enter your PIN."
+        "Payment submitted successfully. Your payment is awaiting verification."
       );
-    } catch (err) {
-      console.error(err);
-      setMessage("Something went wrong.");
+
+      setTimeout(() => {
+        router.push("/my-purchases");
+      }, 2000);
+    } catch (error) {
+      console.error(error);
+      setMessage("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    if (!checkoutRequestId) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(
-          `/api/mpesa/query?checkoutRequestId=${checkoutRequestId}`
-        );
-
-        const data = await response.json();
-
-        if (!data.success) return;
-
-        if (data.status === "PAID") {
-          clearInterval(interval);
-          router.push("/payment/success");
-        }
-
-        if (data.status === "FAILED") {
-          clearInterval(interval);
-          setMessage("Payment failed.");
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [checkoutRequestId, router]);
-
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
 
-        <h1 className="mb-6 text-center text-3xl font-bold">
+        <h1 className="text-center text-3xl font-bold text-gray-900">
           Complete Payment
         </h1>
 
-        <div className="mb-6 rounded-xl bg-gray-100 p-4">
-          <p className="text-gray-500">Amount</p>
+        <p className="mt-2 text-center text-gray-500">
+          Pay using M-Pesa and submit your transaction details.
+        </p>
 
-          <h2 className="text-3xl font-bold text-blue-600">
-            KSh {amount}
-          </h2>
+        <div className="mt-6 rounded-xl bg-blue-50 p-5">
+          <p className="text-sm text-gray-500">
+            Amount to pay
+          </p>
+
+          <p className="mt-1 text-3xl font-bold text-blue-600">
+            KSh {amount || "0"}
+          </p>
         </div>
 
-        <input
-          type="tel"
-          placeholder="254712345678"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="mb-5 w-full rounded-xl border p-4"
-        />
+        <div className="mt-6 rounded-xl border border-gray-200 p-5">
+          <p className="font-semibold text-gray-900">
+            M-Pesa Payment
+          </p>
+
+          <p className="mt-2 text-sm text-gray-600">
+            Send the exact amount to the SomaHub M-Pesa Till number shown
+            during checkout.
+          </p>
+
+          <p className="mt-3 text-sm text-gray-600">
+            After paying, enter your M-Pesa phone number and transaction ID
+            below.
+          </p>
+        </div>
+
+        <div className="mt-6 space-y-4">
+
+          <input
+            type="tel"
+            placeholder="M-Pesa phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full rounded-xl border border-gray-300 p-4 outline-none focus:border-blue-600"
+          />
+
+          <input
+            type="text"
+            placeholder="M-Pesa transaction ID"
+            value={transactionId}
+            onChange={(e) => setTransactionId(e.target.value)}
+            className="w-full rounded-xl border border-gray-300 p-4 uppercase outline-none focus:border-blue-600"
+          />
+
+          <button
+            type="button"
+            onClick={submitPayment}
+            disabled={loading}
+            className="w-full rounded-xl bg-green-600 p-4 font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Submitting..." : "Submit Payment"}
+          </button>
+
+          {message && (
+            <div className="rounded-xl bg-blue-50 p-4 text-center text-sm text-gray-700">
+              {message}
+            </div>
+          )}
+
+        </div>
 
         <button
-          onClick={pay}
-          disabled={loading}
-          className="w-full rounded-xl bg-green-600 p-4 font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+          type="button"
+          onClick={() => router.back()}
+          className="mt-5 w-full text-sm font-medium text-gray-500 hover:text-blue-600"
         >
-          {loading ? "Sending STK Push..." : "Pay with M-Pesa"}
+          Go Back
         </button>
 
-        {message && (
-          <div className="mt-5 rounded-xl bg-blue-50 p-4 text-center">
-            {message}
-          </div>
-        )}
       </div>
     </main>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-gray-100">
+          <p className="text-gray-600">Loading payment...</p>
+        </main>
+      }
+    >
+      <PaymentContent />
+    </Suspense>
   );
 }

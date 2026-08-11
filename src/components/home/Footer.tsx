@@ -15,7 +15,7 @@ export default function Footer() {
             </h2>
 
             <p className="mt-4 leading-7 text-gray-400">
-              Kenya's modern CBC learning platform providing quality notes,
+              Kenya's modern CBE learning platform providing quality notes,
               exams, CATs, revision papers and assignments for Grades 1–12.
             </p>
           </div>

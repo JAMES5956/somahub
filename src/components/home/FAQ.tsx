@@ -12,7 +12,7 @@ export default function FAQ() {
     {
       question: "Which grades are supported?",
       answer:
-        "SomaHub supports all CBC grades from Grade 1 to Grade 12, including Senior School pathways.",
+        "SomaHub supports all CBE grades from Grade 1 to Grade 12, including Senior School pathways.",
     },
     {
       question: "How do I pay?",

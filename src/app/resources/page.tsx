@@ -13,6 +13,8 @@ export default function ResourcesPage() {
   const [search, setSearch] = useState("");
   const [grade, setGrade] = useState("All");
   const [subject, setSubject] = useState("All");
+  const [type, setType] = useState("All");
+  const [sortBy, setSortBy] = useState("Newest");
 
   useEffect(() => {
     loadResources();
@@ -44,6 +46,15 @@ export default function ResourcesPage() {
     ...new Set(resources.map((resource) => resource.subject)),
   ];
 
+  const types = [
+    "All",
+    ...new Set(
+      resources
+        .map((resource) => resource.type)
+        .filter(Boolean)
+    ),
+  ];
+
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
       const matchesSearch =
@@ -60,19 +71,63 @@ export default function ResourcesPage() {
       const matchesSubject =
         subject === "All" || resource.subject === subject;
 
+      const matchesType =
+        type === "All" || resource.type === type;
+
       return (
         matchesSearch &&
         matchesGrade &&
-        matchesSubject
+        matchesSubject &&
+        matchesType
       );
     });
-  }, [resources, search, grade, subject]);
+  }, [
+    resources,
+    search,
+    grade,
+    subject,
+    type,
+  ]);
+
+  const sortedResources = useMemo(() => {
+    const sorted = [...filteredResources];
+
+    switch (sortBy) {
+      case "Price: Low to High":
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+
+      case "Price: High to Low":
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+
+      case "A-Z":
+        sorted.sort((a, b) =>
+          a.title.localeCompare(b.title)
+        );
+        break;
+
+      case "Z-A":
+        sorted.sort((a, b) =>
+          b.title.localeCompare(a.title)
+        );
+        break;
+
+      default:
+        sorted.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime()
+        );
+    }
+
+    return sorted;
+  }, [filteredResources, sortBy]);
 
   return (
     <ProtectedRoute>
       <main className="min-h-screen bg-gray-100">
-
-        {/* Header */}
+              {/* Header */}
         <div className="bg-gradient-to-r from-blue-700 to-sky-600 py-12 text-white">
           <div className="mx-auto max-w-7xl px-6">
 
@@ -105,8 +160,9 @@ export default function ResourcesPage() {
 
           <div className="rounded-3xl bg-white p-6 shadow">
 
-            <div className="grid gap-5 lg:grid-cols-3">
+            <div className="grid gap-5 lg:grid-cols-5">
 
+              {/* Search */}
               <input
                 type="text"
                 placeholder="Search resources..."
@@ -115,31 +171,64 @@ export default function ResourcesPage() {
                 className="rounded-xl border border-gray-300 p-4 outline-none focus:border-blue-600"
               />
 
+              {/* Grade */}
               <select
                 value={grade}
                 onChange={(e) => setGrade(e.target.value)}
                 className="rounded-xl border border-gray-300 p-4"
               >
                 {grades.map((g) => (
-                  <option key={g}>{g}</option>
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
                 ))}
               </select>
 
+              {/* Subject */}
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 className="rounded-xl border border-gray-300 p-4"
               >
                 {subjects.map((s) => (
-                  <option key={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
+              </select>
+
+              {/* Type */}
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="rounded-xl border border-gray-300 p-4"
+              >
+                {types.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+
+              {/* Sort */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="rounded-xl border border-gray-300 p-4"
+              >
+                <option>Newest</option>
+                <option>Price: Low to High</option>
+                <option>Price: High to Low</option>
+                <option>A-Z</option>
+                <option>Z-A</option>
               </select>
 
             </div>
 
           </div>
 
-          {/* Results */}
+          {/* Results Header */}
+
           <div className="mt-10 flex items-center justify-between">
 
             <h2 className="text-2xl font-bold text-gray-900">
@@ -147,29 +236,45 @@ export default function ResourcesPage() {
             </h2>
 
             <span className="rounded-full bg-blue-100 px-4 py-2 font-semibold text-blue-700">
-              {filteredResources.length} Resources
+              {sortedResources.length} Resources
             </span>
 
           </div>
+                    {/* Resource Cards */}
 
-          {/* Cards */}
           {loading ? (
-            <div className="mt-10 text-center text-xl">
-              Loading resources...
+
+            <div className="mt-10 rounded-2xl bg-white p-10 text-center shadow">
+              <p className="text-xl font-semibold text-gray-600">
+                Loading resources...
+              </p>
             </div>
-          ) : filteredResources.length === 0 ? (
-            <div className="mt-10 rounded-xl bg-white p-10 text-center shadow">
-              No resources available.
+
+          ) : sortedResources.length === 0 ? (
+
+            <div className="mt-10 rounded-2xl bg-white p-10 text-center shadow">
+              <h3 className="text-2xl font-bold text-gray-800">
+                No Resources Found
+              </h3>
+
+              <p className="mt-2 text-gray-500">
+                Try changing your search or filters.
+              </p>
             </div>
+
           ) : (
+
             <div className="mt-8 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {filteredResources.map((resource) => (
+
+              {sortedResources.map((resource) => (
                 <ResourceCard
                   key={resource.id}
                   resource={resource}
                 />
               ))}
+
             </div>
+
           )}
 
         </div>
