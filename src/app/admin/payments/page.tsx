@@ -70,16 +70,29 @@ export default function PaymentsPage() {
   ) {
     setUpdating(id);
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("purchases")
       .update({ status })
-      .eq("id", id);
+      .eq("id", id)
+      .select("id,status");
+
+    console.log("UPDATE RESULT:", { data, error });
 
     if (error) {
-      alert(error.message);
+      alert("Update failed: " + error.message);
       setUpdating(null);
       return;
     }
+
+    if (!data || data.length === 0) {
+      alert(
+        "No purchase was updated. This is most likely a Supabase RLS permission problem."
+      );
+      setUpdating(null);
+      return;
+    }
+
+    alert(`Payment ${status} successfully.`);
 
     await loadData();
     setUpdating(null);
