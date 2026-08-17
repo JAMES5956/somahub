@@ -101,7 +101,7 @@ export default function DashboardNavbar() {
         </div>
 
         {/* MOBILE NAVIGATION */}
-        <nav className="grid grid-cols-5 border-t py-2 lg:hidden">
+        <nav className="grid grid-cols-3 border-t py-2 lg:hidden">
 
           <Link
             href="/dashboard"
@@ -143,6 +143,14 @@ export default function DashboardNavbar() {
             <User size={20} />
             Profile
           </Link>
+
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-center gap-1 text-xs text-red-600 hover:text-red-700"
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
 
         </nav>
 
