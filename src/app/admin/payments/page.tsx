@@ -85,16 +85,20 @@ export default function PaymentsPage() {
     }
 
     if (!data || data.length === 0) {
-      alert(
-        "No purchase was updated. This is most likely a Supabase RLS permission problem."
-      );
+      alert("No purchase was updated.");
       setUpdating(null);
       return;
     }
 
-    alert(`Payment ${status} successfully.`);
+    // Update the payment immediately on the screen
+    setPayments((currentPayments) =>
+      currentPayments.map((payment) =>
+        payment.id === id
+          ? { ...payment, status }
+          : payment
+      )
+    );
 
-    await loadData();
     setUpdating(null);
   }
 
